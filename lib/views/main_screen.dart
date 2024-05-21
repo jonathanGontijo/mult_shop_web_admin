@@ -63,8 +63,12 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return AdminScaffold(
       appBar: AppBar(
+        foregroundColor: Colors.white,
         backgroundColor: Colors.blue,
-        title: const Text('Management'),
+        title: const Text(
+          'Management',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       body: _selectedScreen,
       sideBar: SideBar(
