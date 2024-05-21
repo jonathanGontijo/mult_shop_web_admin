@@ -44,9 +44,9 @@ class _MainScreenState extends State<MainScreen> {
         });
 
         break;
-      case CategoriesScrenn.id:
+      case CategoriesScreen.id:
         setState(() {
-          _selectedScreen = CategoriesScrenn();
+          _selectedScreen = CategoriesScreen();
         });
 
         break;
@@ -86,7 +86,7 @@ class _MainScreenState extends State<MainScreen> {
           ),
           AdminMenuItem(
             title: 'Categories',
-            route: CategoriesScrenn.id,
+            route: CategoriesScreen.id,
             icon: Icons.category,
           ),
           AdminMenuItem(

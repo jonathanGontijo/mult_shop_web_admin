@@ -1,15 +1,68 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:mult_shop_admin/views/side_bar_screens/widgets/category_list_widget.dart';
 
-class CategoriesScrenn extends StatefulWidget {
+class CategoriesScreen extends StatefulWidget {
   static const String id = '\categories-screen';
-  const CategoriesScrenn({super.key});
+  const CategoriesScreen({super.key});
 
   @override
-  State<CategoriesScrenn> createState() => _CategoriesScrennState();
+  State<CategoriesScreen> createState() => _CategoriesScreenState();
 }
 
-class _CategoriesScrennState extends State<CategoriesScrenn> {
+class _CategoriesScreenState extends State<CategoriesScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  dynamic _image;
+  String? fileName;
+  late String categoryName;
+
+  pickImage() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+    if (result != null) {
+      setState(() {
+        _image = result.files.first.bytes;
+        fileName = result.files.first.name;
+      });
+    }
+  }
+
+  _uploadImageToStorage(dynamic image) async {
+    Reference ref = _firebaseStorage.ref().child('categories').child(fileName!);
+    UploadTask uploadTask = ref.putData(image);
+    TaskSnapshot snap = await uploadTask;
+    String downloadUrl = await snap.ref.getDownloadURL();
+    return downloadUrl;
+  }
+
+  uploadToFirestore() async {
+    if (_formKey.currentState!.validate()) {
+      if (_image != null) {
+        EasyLoading.show();
+        String imageUrl = await _uploadImageToStorage(_image);
+        await _firestore.collection('categories').doc(fileName).set({
+          'categoryName': categoryName,
+          'categoryImage': imageUrl,
+        }).whenComplete(() {
+          EasyLoading.dismiss();
+          _image = null;
+        });
+      } else {
+        EasyLoading.dismiss();
+      }
+    } else {
+      EasyLoading.dismiss();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -48,20 +101,24 @@ class _CategoriesScrennState extends State<CategoriesScrenn> {
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Center(
-                        child: Text(
-                          'Upload Image',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child: Center(
+                        child: _image != null
+                            ? Image.memory(_image)
+                            : const Text(
+                                'Upload Image',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          pickImage();
+                        },
                         child: const Text(
                           'Upload Image',
                           style: TextStyle(
@@ -76,6 +133,9 @@ class _CategoriesScrennState extends State<CategoriesScrenn> {
                 SizedBox(
                   width: 150,
                   child: TextFormField(
+                    onChanged: (value) {
+                      categoryName = value;
+                    },
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Please enter category name';
@@ -100,11 +160,7 @@ class _CategoriesScrennState extends State<CategoriesScrenn> {
                     ),
                   ),
                   onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      //uploaud category to firebase
-                    } else {
-                      print('bad response');
-                    }
+                    uploadToFirestore();
                   },
                   child: const Text(
                     'Save',
@@ -112,7 +168,8 @@ class _CategoriesScrennState extends State<CategoriesScrenn> {
                 ),
               ],
             ),
-          )
+          ),
+          CategoryListWidget(),
         ],
       ),
     );
