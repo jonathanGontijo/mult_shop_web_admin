@@ -6,7 +6,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:mult_shop_admin/views/side_bar_screens/widgets/banners_list_widget.dart';
 
 class UploadBannersScreen extends StatefulWidget {
-  static const String id = '\UploadBanners-screen';
+  static const String id = 'UploadBanners-screen';
   const UploadBannersScreen({super.key});
 
   @override
@@ -142,7 +142,7 @@ class _UploadBannersScreenState extends State<UploadBannersScreen> {
               ),
             ],
           ),
-          BannerListWidget(),
+          const BannerListWidget(),
         ],
       ),
     );

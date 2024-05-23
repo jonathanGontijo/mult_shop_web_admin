@@ -16,43 +16,43 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  Widget _selectedScreen = VendorsScreen();
+  Widget _selectedScreen = const VendorsScreen();
   screenSelector(item) {
     switch (item.route) {
       case BuyersScreen.id:
         setState(() {
-          _selectedScreen = BuyersScreen();
+          _selectedScreen = const BuyersScreen();
         });
         break;
 
       case VendorsScreen.id:
         setState(() {
-          _selectedScreen = VendorsScreen();
+          _selectedScreen = const VendorsScreen();
         });
 
         break;
 
       case ProductsScreen.id:
         setState(() {
-          _selectedScreen = ProductsScreen();
+          _selectedScreen = const ProductsScreen();
         });
 
         break;
       case OrdersScreen.id:
         setState(() {
-          _selectedScreen = OrdersScreen();
+          _selectedScreen = const OrdersScreen();
         });
 
         break;
       case CategoriesScreen.id:
         setState(() {
-          _selectedScreen = CategoriesScreen();
+          _selectedScreen = const CategoriesScreen();
         });
 
         break;
       case UploadBannersScreen.id:
         setState(() {
-          _selectedScreen = UploadBannersScreen();
+          _selectedScreen = const UploadBannersScreen();
         });
 
         break;
@@ -67,11 +67,45 @@ class _MainScreenState extends State<MainScreen> {
         backgroundColor: Colors.blue,
         title: const Text(
           'Management',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.7,
+          ),
         ),
       ),
       body: _selectedScreen,
       sideBar: SideBar(
+        header: Container(
+          height: 50,
+          width: double.infinity,
+          decoration: const BoxDecoration(color: Colors.black),
+          child: const Center(
+            child: Text(
+              'Mult Vendor Admin',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.7,
+              ),
+            ),
+          ),
+        ),
+        footer: Container(
+          height: 50,
+          width: double.infinity,
+          color: Colors.black,
+          child: const Center(
+            child: Text(
+              'Footer',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
         items: const [
           AdminMenuItem(
             title: 'Vendors',

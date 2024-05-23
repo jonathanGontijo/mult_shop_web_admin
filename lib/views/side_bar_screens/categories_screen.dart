@@ -6,7 +6,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:mult_shop_admin/views/side_bar_screens/widgets/category_list_widget.dart';
 
 class CategoriesScreen extends StatefulWidget {
-  static const String id = '\categories-screen';
+  static const String id = 'categories-screen';
   const CategoriesScreen({super.key});
 
   @override
@@ -169,7 +169,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               ],
             ),
           ),
-          CategoryListWidget(),
+          const CategoryListWidget(),
         ],
       ),
     );

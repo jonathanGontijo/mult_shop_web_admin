@@ -2,10 +2,12 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class ProductsScreen extends StatefulWidget {
-  static const String id = '\products-screen';
+  static const String id = 'products-screen';
 
   const ProductsScreen({super.key});
 
@@ -16,12 +18,14 @@ class ProductsScreen extends StatefulWidget {
 class _ProductsScreenState extends State<ProductsScreen> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final TextEditingController _sizeController = TextEditingController();
+  final FirebaseStorage _firebaseStorage = FirebaseStorage.instance;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   final List<String> _categoryList = [];
 
   final List<String> _sizeList = [];
   String? selectedCategory;
-  bool isLoading = false;
+  bool _isLoading = false;
   String? productName;
   double? productPrice;
   int? discount;
@@ -31,6 +35,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   final List<Uint8List> _images = [];
 
   bool _isEntered = false;
+  List<String> _imagesUrls = [];
 
   chooseImage() async {
     final pickedImages = await FilePicker.platform.pickFiles(
@@ -65,6 +70,50 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void initState() {
     _getCategories();
     super.initState();
+  }
+
+  //upload product image to storage
+  uploadImageToStorage() async {
+    for (var img in _images) {
+      Reference ref =
+          _firebaseStorage.ref().child('productImages').child(Uuid().v4());
+      await ref.putData(img).whenComplete(() async {
+        await ref.getDownloadURL().then((value) {
+          setState(() {
+            _imagesUrls.add(value);
+          });
+        });
+      });
+    }
+  }
+
+  //function to upload products to cloud
+  uploadData() async {
+    setState(() {
+      _isLoading = true;
+    });
+    await uploadImageToStorage();
+    if (_imagesUrls.isNotEmpty) {
+      final productId = Uuid().v4();
+      await _firestore.collection('products').doc(productId).set({
+        'productId': productId,
+        'productName': productName,
+        'productPrice': productPrice,
+        'productSize': _sizeList,
+        'category': selectedCategory,
+        'description': description,
+        'discount': description,
+        'quantity': quantity,
+        'productImage': _imagesUrls,
+      }).whenComplete(() {
+        setState(() {
+          _isLoading = false;
+          _formKey.currentState!.reset();
+          _imagesUrls.clear();
+          _images.clear();
+        });
+      });
+    }
   }
 
   @override
@@ -287,7 +336,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             }),
                       ),
                     )
-                  : Text(''),
+                  : const Text(''),
               const SizedBox(height: 20),
               GridView.builder(
                   itemCount: _images.length + 1,
@@ -313,11 +362,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
               InkWell(
                 onTap: () {
                   if (_formKey.currentState!.validate()) {
-                    //upload product to cloud firestore
-                    print('uploaded');
-                  } else {
-                    print('bad status');
-                  }
+                    uploadData();
+                  } else {}
                 },
                 child: Container(
                   width: MediaQuery.of(context).size.width - 50,
@@ -326,15 +372,19 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(9),
                   ),
-                  child: const Center(
-                    child: Text(
-                      'Upload Product',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white),
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(
+                          color: Colors.white,
+                        )
+                      : const Center(
+                          child: Text(
+                            'Upload Product',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                        ),
                 ),
               )
             ],
